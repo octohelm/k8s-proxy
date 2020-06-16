@@ -1,0 +1,15 @@
+apiVersion: "serving.octohelm.tech/v1alpha1"
+kind: "QService"
+metadata:
+  namespace: octohelm
+  name: k8s-proxy
+  labels:
+    app: "k8s-proxy"
+    group: "octohelm"
+spec:
+  serviceAccountName: k8s-proxy
+  image: "octohelm/k8s-proxy:0.0.1"
+  ports:
+    - "80"
+  envs:
+    KUBE_PROXY_SECRET: FxsZE3Mpiy0rMUVqIzNkxM4GuOVgalOZ
