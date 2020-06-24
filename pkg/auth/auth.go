@@ -52,8 +52,8 @@ func NewValidatorMiddleware(validator Validator) httputil.MiddlewareFunc {
 		return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 			token := req.Header.Get("Authorization")
 
-			writeErr := func(err error) {
-				e := apierrors.NewUnauthorized(err.Error())
+			writeErr := func(err error, msg ...string) {
+				e := apierrors.NewUnauthorized(fmt.Sprintf("[k8s-proxy] %s: %s", err.Error(), strings.Join(msg, " ")))
 
 				rw.Header().Set("Content-Type", "application/json; charset=utf-8")
 				rw.WriteHeader(int(e.ErrStatus.Code))
@@ -69,7 +69,7 @@ func NewValidatorMiddleware(validator Validator) httputil.MiddlewareFunc {
 					if strings.EqualFold(tpe, validator.Type()) {
 						ok, err := validator.Validate(parts[1])
 						if err != nil {
-							writeErr(err)
+							writeErr(err, token)
 							return
 						}
 
@@ -77,6 +77,8 @@ func NewValidatorMiddleware(validator Validator) httputil.MiddlewareFunc {
 							writeErr(ErrInvalidToken)
 							return
 						}
+
+						req.Header.Del("Authorization")
 
 						next.ServeHTTP(rw, req)
 						return

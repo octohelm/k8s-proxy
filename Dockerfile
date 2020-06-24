@@ -11,9 +11,6 @@ WORKDIR /go/src/${PKG}/cmd/k8s-proxy
 RUN ../../scripts/build.sh && cp k8s-proxy /go/bin/
 
 FROM alpine
-
-COPY --from=builder /go/bin/k8s-proxy /usr/local/bin/k8s-proxy
-
+COPY --from=builder /go/bin/k8s-proxy /go/bin/k8s-proxy
 EXPOSE 80
-
-CMD ["/usr/local/bin/k8s-proxy"]
+ENTRYPOINT ["/go/bin/k8s-proxy"]
