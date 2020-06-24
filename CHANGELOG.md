@@ -5,6 +5,14 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 
 
+# [0.0.1](https://github.com/morlay/k8s-proxy/compare/v0.0.0...v0.0.1)
+
+### Bug Fixes
+
+* **fix** delete proxy Authorization to take over to k8s client ([17b835d](https://github.com/morlay/k8s-proxy/commit/17b835dc001f6698154b04d1f441c6f419a9f375))
+
+
+
 # 0.0.0
 
 ### Features
