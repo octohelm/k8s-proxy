@@ -2,6 +2,7 @@ package proxy
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"net/http"
 	"net/url"
@@ -11,15 +12,18 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/go-logr/logr"
 	"github.com/octohelm/k8s-proxy/pkg/httputil"
 	utilnet "k8s.io/apimachinery/pkg/util/net"
 	"k8s.io/apimachinery/pkg/util/proxy"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/transport"
-	"k8s.io/klog"
+	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
-func NewServer(cfg *rest.Config, keepalive time.Duration, middlewares ...httputil.MiddlewareFunc) (*Server, error) {
+func NewServer(ctx context.Context, cfg *rest.Config, keepalive time.Duration, middlewares ...httputil.MiddlewareFunc) (*Server, error) {
+	l := log.FromContext(ctx)
+
 	host := cfg.Host
 	if !strings.HasSuffix(host, "/") {
 		host = host + "/"
@@ -29,8 +33,6 @@ func NewServer(cfg *rest.Config, keepalive time.Duration, middlewares ...httputi
 	if err != nil {
 		return nil, err
 	}
-
-	responder := &responder{}
 
 	t, err := rest.TransportFor(cfg)
 	if err != nil {
@@ -42,7 +44,7 @@ func NewServer(cfg *rest.Config, keepalive time.Duration, middlewares ...httputi
 		return nil, err
 	}
 
-	p := proxy.NewUpgradeAwareHandler(target, t, false, false, responder)
+	p := proxy.NewUpgradeAwareHandler(target, t, true, false, &responder{})
 	p.UpgradeTransport = upgradeTransport
 	p.UseRequestLocation = true
 
@@ -55,11 +57,12 @@ func NewServer(cfg *rest.Config, keepalive time.Duration, middlewares ...httputi
 	mux := http.NewServeMux()
 	mux.Handle("/", httputil.WithMiddlewares(middlewares...)(proxyServer))
 
-	return &Server{handler: mux}, nil
+	return &Server{log: l, handler: mux}, nil
 }
 
 // Server is a http.Handler which proxies Kubernetes APIs to remote API server.
 type Server struct {
+	log     logr.Logger
 	handler http.Handler
 }
 
@@ -71,13 +74,13 @@ func (s *Server) Serve() error {
 	srv.Addr = ":80"
 
 	go func() {
-		klog.Infof("proxy listen on %s", srv.Addr)
+		s.log.V(-1).Info(fmt.Sprintf("proxy listen on %s", srv.Addr))
 
 		if err := srv.ListenAndServe(); err != nil {
 			if err == http.ErrServerClosed {
-				klog.Error(err)
+				s.log.Info("")
 			} else {
-				klog.Fatal(err)
+				s.log.Error(err, "")
 			}
 		}
 	}()
@@ -91,7 +94,7 @@ func (s *Server) Serve() error {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	klog.Infof("shutdowning in %s", timeout)
+	s.log.Info(fmt.Sprintf("shutting down in %s", timeout))
 
 	return srv.Shutdown(ctx)
 }
@@ -116,7 +119,6 @@ func stripLeaveSlash(prefix string, h http.Handler) http.Handler {
 type responder struct{}
 
 func (r *responder) Error(w http.ResponseWriter, req *http.Request, err error) {
-	klog.Errorf("Error while proxying request: %v", err)
 	http.Error(w, err.Error(), http.StatusInternalServerError)
 }
 
@@ -138,7 +140,6 @@ func makeUpgradeTransport(config *rest.Config, keepalive time.Duration) (proxy.U
 			KeepAlive: keepalive,
 		}).DialContext,
 	})
-
 	upgrader, err := transport.HTTPWrappersForConfig(transportConfig, proxy.MirrorRequest)
 	if err != nil {
 		return nil, err

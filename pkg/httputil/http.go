@@ -23,11 +23,11 @@ func WithMiddlewares(fns ...MiddlewareFunc) MiddlewareFunc {
 
 type Transport = transport.WrapperFunc
 
-func WithTransports(fns ...Transport) Transport {
+func WithTransports(transports ...Transport) Transport {
 	return func(rt http.RoundTripper) http.RoundTripper {
 		base := rt
-		for i := range fns {
-			fn := fns[len(fns)-1-i]
+		for i := range transports {
+			fn := transports[len(transports)-1-i]
 			if fn != nil {
 				base = fn(base)
 			}

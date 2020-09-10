@@ -41,12 +41,15 @@ func NewMixerMiddlare(mixer Mixer) func(next http.Handler) http.Handler {
 			}
 
 			mixerRw := MixerResponseWriter(rw, mixer)
+			defer func() {
+				if closer, ok := mixerRw.(io.WriteCloser); ok {
+					_ = closer.Close()
+				}
+			}()
 
+			// important to avoid encoding failed when gzip
+			req.Header.Del("Accept-Encoding")
 			next.ServeHTTP(mixerRw, req)
-
-			if closer, ok := mixerRw.(io.WriteCloser); ok {
-				closer.Close()
-			}
 		})
 	}
 }

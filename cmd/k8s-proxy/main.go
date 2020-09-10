@@ -2,19 +2,22 @@ package main
 
 import (
 	"context"
-	"fmt"
-	"runtime"
 
 	"github.com/octohelm/k8s-proxy/pkg/secureproxy"
 	"github.com/octohelm/k8s-proxy/version"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
-	"k8s.io/klog"
+	"sigs.k8s.io/controller-runtime/pkg/log"
+	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 )
 
 func main() {
-	printVersion()
+	log.SetLogger(zap.New(zap.UseDevMode(true)))
+
+	l := log.Log.WithValues(version.Name, version.GetVersion())
+
+	ctx := log.IntoContext(context.Background(), l)
 
 	cc, err := secureproxy.ResolveKubeConfig()
 	if err != nil {
@@ -25,18 +28,12 @@ func main() {
 		panic(err)
 	}
 
-	s, err := secureproxy.NewServer(cc, 0)
+	s, err := secureproxy.NewServer(ctx, cc, 0)
 	if err != nil {
 		panic(err)
 	}
 
 	_ = s.Serve()
-}
-
-func printVersion() {
-	klog.Info(fmt.Sprintf("%s Version: %s", version.Name, version.Version))
-	klog.Info(fmt.Sprintf("Go Version: %s", runtime.Version()))
-	klog.Info(fmt.Sprintf("Go OS/Arch: %s/%s", runtime.GOOS, runtime.GOARCH))
 }
 
 func validateConfig(c *rest.Config) error {

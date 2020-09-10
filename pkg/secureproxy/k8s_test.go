@@ -5,6 +5,8 @@ import (
 	"testing"
 
 	"github.com/davecgh/go-spew/spew"
+	"sigs.k8s.io/controller-runtime/pkg/log"
+
 	"github.com/octohelm/k8s-proxy/pkg/secureproxy"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -16,7 +18,9 @@ func Test(t *testing.T) {
 		panic(err)
 	}
 
-	svc, err := secureproxy.NewServer(cc, 0)
+	ctx := log.IntoContext(context.Background(), log.Log)
+
+	svc, err := secureproxy.NewServer(ctx, cc, 0)
 	if err != nil {
 		panic(err)
 	}
@@ -35,10 +39,9 @@ func Test(t *testing.T) {
 		panic(err)
 	}
 
-	list, err := clientset.CoreV1().Nodes().List(context.Background(), v1.ListOptions{})
+	list, err := clientset.CoreV1().Pods("aisys").List(context.Background(), v1.ListOptions{})
 	if err != nil {
-		panic(err)
+		t.Fatal(err)
 	}
-
 	spew.Dump(list)
 }

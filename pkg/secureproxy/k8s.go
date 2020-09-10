@@ -1,6 +1,7 @@
 package secureproxy
 
 import (
+	"context"
 	"os"
 	"time"
 
@@ -16,12 +17,12 @@ func ResolveKubeProxySecret() []byte {
 	return []byte("FxsZE3Mpiy0rMUVqIzNkxM4GuOVgalOZ")
 }
 
-func NewServer(cfg *rest.Config, keepalive time.Duration) (*proxy.Server, error) {
-	m, err := NewSecureMiddleware(ResolveKubeProxySecret())
+func NewServer(ctx context.Context, cfg *rest.Config, keepalive time.Duration) (*proxy.Server, error) {
+	m, err := NewSecureMiddleware(ctx, ResolveKubeProxySecret())
 	if err != nil {
 		return nil, err
 	}
-	return proxy.NewServer(cfg, keepalive, m)
+	return proxy.NewServer(ctx, cfg, keepalive, m)
 }
 
 func ProxyConfig(host string, key []byte) (*rest.Config, error) {

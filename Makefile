@@ -1,6 +1,13 @@
-PKG=$(shell cat go.mod | grep module | sed -E s/module\ //g)
-VERSION=$(shell cat .version)
-APP=k8s-proxy
+PKG = $(shell cat go.mod | grep "^module " | sed -e "s/module //g")
+VERSION = $(shell cat .version)
+COMMIT_SHA ?= $(shell git describe --always)-devel
+
+GOBUILD = CGO_ENABLED=0 go build -ldflags "-X ${PKG}/version.Version=${VERSION}+sha.${COMMIT_SHA}"
+
+GOBIN ?= ./bin
+GOOS ?= $(shell go env GOOS)
+GOARCH ?= $(shell go env GOARCH)
+
 
 up:
 	go run cmd/k8s-proxy/main.go
@@ -9,17 +16,15 @@ test:
 	go test ./...
 
 build:
-	cd cmd/k8s-proxy && ../../scripts/build.sh
+	$(GOBUILD) -o $(GOBIN)/k8s-proxy ./cmd/k8s-proxy/main.go
 
-dockerx:
+build.dockerx:
 	docker buildx build \
 		--push \
 		--build-arg=GOPROXY=${GOPROXY} \
-		--build-arg=PKG=${PKG} \
-		--build-arg=VERSION=${VERSION} \
 		--platform=linux/amd64,linux/arm64 \
-		-f Dockerfile \
-		-t octohelm/k8s-proxy:${VERSION} .
+		-t hub-dev.demo.querycap.com/octohelm/k8s-proxy:${VERSION} \
+		-f Dockerfile .
 
 lint:
 	husky hook pre-commit

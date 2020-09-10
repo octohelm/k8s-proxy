@@ -1,16 +1,14 @@
-FROM golang:1.14-alpine as builder
+FROM golang:1.15-buster as builder
 
 ARG GOPROXY=https://proxy.golang.org,direct
-ARG PKG=github.com/octohelm/k8s-proxy
-ARG VERSION=0.0.1
+ENV GOBIN=/go/bin
 
-COPY ./ /go/src/${PKG}
+WORKDIR /go/src
+COPY ./ ./
 
-WORKDIR /go/src/${PKG}/cmd/k8s-proxy
+RUN make build
 
-RUN ../../scripts/build.sh && cp k8s-proxy /go/bin/
-
-FROM alpine
+FROM debian:buster-slim
 COPY --from=builder /go/bin/k8s-proxy /go/bin/k8s-proxy
 EXPOSE 80
 ENTRYPOINT ["/go/bin/k8s-proxy"]
