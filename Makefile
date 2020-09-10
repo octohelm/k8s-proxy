@@ -23,6 +23,7 @@ build.dockerx:
 		--push \
 		--build-arg=GOPROXY=${GOPROXY} \
 		--platform=linux/amd64,linux/arm64 \
+		-t octohelm/k8s-proxy:${VERSION} \
 		-t hub-dev.demo.querycap.com/octohelm/k8s-proxy:${VERSION} \
 		-f Dockerfile .
 
