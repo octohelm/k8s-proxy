@@ -5,6 +5,14 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 
 
+# [0.0.2](https://github.com/morlay/k8s-proxy/compare/v0.0.1...v0.0.2)
+
+### Bug Fixes
+
+* **fix** gzip ignore ([c83d9a7](https://github.com/morlay/k8s-proxy/commit/c83d9a75c932284b6d2e9c0b78bd542e68d3fdc5))
+
+
+
 # [0.0.1](https://github.com/morlay/k8s-proxy/compare/v0.0.0...v0.0.1)
 
 ### Bug Fixes
