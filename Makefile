@@ -11,13 +11,13 @@ GOARCH ?= $(shell go env GOARCH)
 NAME ?= k8s-proxy
 
 up:
-	go run cmd/k8s-proxy/main.go
+	go run cmd/$(NAME)/main.go
 
 test:
 	go test ./...
 
 build:
-	$(GOBUILD) -o $(GOBIN)/k8s-proxy-${GOARCH} ./cmd/k8s-proxy/main.go
+	$(GOBUILD) -o $(GOBIN)/$(NAME)-$(GOOS)-$(GOARCH) ./cmd/$(NAME)/main.go
 
 prepare:
 	@echo ::set-output name=image::$(NAME):$(TAG)
@@ -28,8 +28,8 @@ build.dockerx:
 		--push \
 		--build-arg=GOPROXY=${GOPROXY} \
 		--platform=linux/amd64,linux/arm64 \
-		-t octohelm/k8s-proxy:${VERSION} \
-		-f Dockerfile .
+		-t octohelm/$(NAME):$(TAG) \
+		-f hack/Dockerfile .
 
 lint:
 	husky hook pre-commit
