@@ -8,7 +8,7 @@ metadata:
     group: "octohelm"
 spec:
   serviceAccountName: k8s-proxy
-  image: "hub-dev.rockontrol.com/octohelm/k8s-proxy:0.0.1"
+  image: "docker.io/octohelm/k8s-proxy:0.0.2"
   imagePullPolicy: Always
   ports:
     - "80"
