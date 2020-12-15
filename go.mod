@@ -14,7 +14,7 @@ require (
 	github.com/googleapis/gnostic v0.5.3 // indirect
 	github.com/gophercloud/gophercloud v0.1.0 // indirect
 	github.com/imdario/mergo v0.3.11 // indirect
-	github.com/onsi/gomega v1.10.2
+	github.com/onsi/gomega v1.10.4
 	github.com/ugorji/go/codec v0.0.0-20181204163529-d75b2dcb6bc8 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
 	go.uber.org/zap v1.16.0 // indirect
