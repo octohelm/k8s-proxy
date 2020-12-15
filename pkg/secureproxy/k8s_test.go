@@ -39,7 +39,7 @@ func Test(t *testing.T) {
 		panic(err)
 	}
 
-	list, err := clientset.CoreV1().Pods("aisys").List(context.Background(), v1.ListOptions{})
+	list, err := clientset.CoreV1().Pods("default").List(context.Background(), v1.ListOptions{})
 	if err != nil {
 		t.Fatal(err)
 	}
